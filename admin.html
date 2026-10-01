@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de edición — MICROSYSTEMSULLANA</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+  :root{--azul:#0B3D91;--electrico:#00A3FF;--gris:#F5F7FA;--borde:#e2e8f0;--texto:#10233f;--muted:#64748b;--bien:#16a34a}
+  *{box-sizing:border-box}
+  body{font-family:Inter,Arial,sans-serif;background:var(--gris);color:var(--texto);margin:0}
+  header{background:linear-gradient(135deg,var(--azul),var(--electrico));color:#fff;padding:22px 26px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:10}
+  header h1{font-size:1.15rem;margin:0}
+  header p{margin:2px 0 0;font-size:.8rem;opacity:.85}
+  .acciones{display:flex;gap:10px;flex-wrap:wrap}
+  button, .archivo-btn{cursor:pointer;border:0;border-radius:10px;padding:10px 16px;font-weight:700;font-size:.85rem;display:inline-flex;align-items:center;gap:8px}
+  .btn-primario{background:#fff;color:var(--azul)}
+  .btn-secundario{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4)}
+  .btn-mini{background:var(--electrico);color:#fff;padding:6px 12px;font-size:.75rem;border-radius:8px}
+  .btn-quitar{background:#fee2e2;color:#b91c1c;padding:6px 10px;font-size:.75rem;border-radius:8px}
+  main{max-width:960px;margin:0 auto;padding:26px 18px 90px}
+  .aviso{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:14px 16px;border-radius:12px;font-size:.85rem;margin-bottom:22px}
+  .tarjeta{background:#fff;border:1px solid var(--borde);border-radius:16px;padding:22px;margin-bottom:20px}
+  .tarjeta h2{font-size:1.05rem;color:var(--azul);margin:0 0 4px}
+  .tarjeta > p.ayuda{color:var(--muted);font-size:.8rem;margin:0 0 16px}
+  .fila{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .fila.uno{grid-template-columns:1fr}
+  label{display:block;font-size:.78rem;font-weight:700;color:#475569;margin-bottom:6px}
+  input, textarea, select{width:100%;border:1px solid var(--borde);border-radius:9px;padding:10px 12px;font-size:.88rem;font-family:inherit;background:#fbfcfe}
+  textarea{min-height:70px;resize:vertical}
+  .item-lista{border:1px dashed var(--borde);border-radius:12px;padding:16px;margin-bottom:12px;background:#fafbfd;position:relative}
+  .item-lista .encabezado-item{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .item-lista .encabezado-item strong{font-size:.8rem;color:var(--electrico)}
+  @media(max-width:640px){.fila{grid-template-columns:1fr}}
+  #estadoGuardado{font-size:.78rem;color:var(--bien);font-weight:700;display:none}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1><i class="fa-solid fa-sliders"></i> Panel de edición — MICROSYSTEMSULLANA</h1>
+    <p>Edita aquí y descarga el archivo listo para tu carpeta <code>js/</code></p>
+  </div>
+  <div class="acciones">
+    <label class="archivo-btn btn-secundario" for="cargarArchivo"><i class="fa-solid fa-folder-open"></i> Cargar mi contenido.js
+      <input type="file" id="cargarArchivo" accept=".js" style="display:none">
+    </label>
+    <button class="btn-primario" id="btnDescargar"><i class="fa-solid fa-download"></i> Descargar contenido.js</button>
+  </div>
+</header>
+
+<main>
+  <div class="aviso">
+    <strong>Cómo se usa:</strong> este panel funciona solo en tu navegador, no envía nada a internet.
+    1) Carga tu <code>js/contenido.js</code> actual (si no lo cargas, parte de un ejemplo).
+    2) Edita los campos. 3) Descarga el archivo nuevo y reemplázalo dentro de la carpeta <code>js/</code> de tu proyecto.
+    Sirve igual si luego publicas en tu nube OpenMediaVault, en GitHub Pages o en un hosting gratuito: la página siempre lee ese mismo archivo.
+    <span id="estadoGuardado">✓ Archivo cargado correctamente</span>
+  </div>
+
+  <div id="contenedorFormulario"></div>
+</main>
+
+<script>
+/* ============ Datos por defecto (iguales a js/contenido.js) ============ */
+const CONTENIDO_DEFECTO = {
+  seo: {
+    titulo: "MICROSYSTEMSULLANA | Servicio Técnico Informático",
+    descripcion: "MICROSYSTEMSULLANA - Servicio técnico informático, reparación de computadoras, impresoras, redes, sistemas y páginas web."
+  },
+  negocio: {
+    nombre: "MICROSYSTEMSULLANA",
+    telefonoMostrar: "920 235 447",
+    telefonoLlamada: "+51920235447",
+    whatsapp: "51920235447",
+    ubicacion: "Sullana, Piura - Perú",
+    mapa: "Sullana, Piura, Peru",
+    mensajeWhatsappCotizar: "Hola MICROSYSTEMSULLANA, quiero cotizar un servicio.",
+    mensajeWhatsappInfo: "Hola MICROSYSTEMSULLANA, necesito información sobre un servicio."
+  },
+  menu: [
+    { texto: "Inicio", enlace: "#inicio" },
+    { texto: "Servicios", enlace: "#servicios" },
+    { texto: "Sistemas y Web", enlace: "#sistemas" },
+    { texto: "Contacto", enlace: "#contacto" }
+  ],
+  menuBoton: "Cotizar",
+  hero: {
+    insignia: "Servicio técnico profesional",
+    titulo: "ESPECIALISTAS EN",
+    tituloResaltado: "HARDWARE Y SOFTWARE.",
+    texto: "Soluciones informáticas rápidas, profesionales y confiables.",
+    imagenFondo: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=2000&q=85",
+    botonPrincipal: "Cotizar ahora",
+    botonSecundario: "Ver servicios"
+  },
+  servicios: {
+    miniTitulo: "Nuestros servicios",
+    titulo: "Soluciones para tu tecnología",
+    texto: "Todo lo que necesitas en un solo lugar.",
+    opcionOtro: "Otro servicio",
+    items: [
+      { icono: "fa-solid fa-print", titulo: "Reparación de impresoras", texto: "Diagnóstico, mantenimiento y reparación.", imagen: "https://images.unsplash.com/photo-1625842268584-8f3296236761?auto=format&fit=crop&w=900&q=85", alt: "Técnico reparando una impresora" },
+      { icono: "fa-solid fa-laptop", titulo: "Computadoras y laptops", texto: "Reparación, limpieza y optimización.", imagen: "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&w=900&q=85", alt: "Computadora de escritorio para servicio técnico" },
+      { icono: "fa-solid fa-network-wired", titulo: "Redes LAN y WiFi", texto: "Conectividad estable y segura.", imagen: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=900&q=85", alt: "Cables de red y equipos de red" },
+      { icono: "fa-solid fa-microchip", titulo: "Venta de repuestos", texto: "Componentes para tus equipos.", imagen: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=900&q=85", alt: "Componentes y repuestos tecnológicos" },
+      { icono: "fa-solid fa-code", titulo: "Sistemas a medida", texto: "Software adaptado a tu negocio.", imagen: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=900&q=85", alt: "Programador trabajando con código" },
+      { icono: "fa-solid fa-globe", titulo: "Páginas web", texto: "Webs modernas y profesionales.", imagen: "https://images.unsplash.com/photo-1547658719-da2b51169166?auto=format&fit=crop&w=900&q=85", alt: "Diseño de página web en computadora" }
+    ]
+  },
+  sistemas: {
+    miniTitulo: "Desarrollo digital",
+    titulo: "Sistemas y páginas web a medida",
+    texto: "Creamos soluciones digitales adaptadas a cada necesidad.",
+    imagen: "https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=1200&q=85",
+    alt: "Diseño y desarrollo de páginas web",
+    items: [
+      { icono: "fa-solid fa-building", texto: "Empresas" },
+      { icono: "fa-solid fa-store", texto: "Tiendas" },
+      { icono: "fa-solid fa-school", texto: "Colegios" },
+      { icono: "fa-solid fa-layer-group", texto: "Otros" }
+    ]
+  },
+  porQue: {
+    miniTitulo: "Nuestra diferencia",
+    titulo: "¿Por qué elegirnos?",
+    texto: "Servicio pensado para darte tranquilidad.",
+    items: [
+      { icono: "fa-solid fa-bolt", texto: "Rápido" },
+      { icono: "fa-solid fa-shield-halved", texto: "Garantía" },
+      { icono: "fa-solid fa-user-gear", texto: "Técnicos expertos" },
+      { icono: "fa-solid fa-headset", texto: "Soporte" }
+    ]
+  },
+  galeria: {
+    miniTitulo: "Trabajos",
+    titulo: "Galería de trabajos",
+    texto: "Parte de nuestro mundo tecnológico.",
+    fotos: [
+      { imagen: "https://images.unsplash.com/photo-1517336714739-489689fd1ca8?auto=format&fit=crop&w=1000&q=85", alt: "Laptop tecnológica" },
+      { imagen: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1000&q=85", alt: "Servidores y red informática" },
+      { imagen: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=1000&q=85", alt: "Computadora de escritorio" },
+      { imagen: "https://images.unsplash.com/photo-1527430253228-e93688616381?auto=format&fit=crop&w=1000&q=85", alt: "Componentes de computadora" },
+      { imagen: "https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1200&q=85", alt: "Trabajo tecnológico en equipo" },
+      { imagen: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1000&q=85", alt: "Programación y desarrollo web" }
+    ]
+  },
+  estadisticas: {
+    imagenFondo: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1800&q=80",
+    items: [
+      { icono: "fa-solid fa-screwdriver-wrench", numero: 850, texto: "Equipos reparados" },
+      { icono: "fa-solid fa-users", numero: 620, texto: "Clientes atendidos" },
+      { icono: "fa-solid fa-award", numero: 10, texto: "Años de experiencia" }
+    ]
+  },
+  cta: { titulo: "¿Tienes un problema técnico?", texto: "Estamos listos para ayudarte.", boton: "Hablar por WhatsApp" },
+  contacto: {
+    miniTitulo: "Contacto",
+    titulo: "Hablemos de tu proyecto",
+    texto: "Cuéntanos qué necesitas y te contactaremos.",
+    etiquetaTelefono: "Teléfono",
+    etiquetaWhatsapp: "WhatsApp",
+    etiquetaUbicacion: "Ubicación",
+    placeholderServicio: "Selecciona un servicio"
+  },
+  footer: {
+    texto: "Servicio Técnico Informático",
+    redes: [
+      { icono: "fa-brands fa-facebook-f", nombre: "Facebook", enlace: "" },
+      { icono: "fa-brands fa-whatsapp", nombre: "WhatsApp", enlace: "whatsapp" },
+      { icono: "fa-brands fa-instagram", nombre: "Instagram", enlace: "" },
+      { icono: "fa-brands fa-tiktok", nombre: "TikTok", enlace: "" }
+    ]
+  }
+};
+
+let data = JSON.parse(JSON.stringify(CONTENIDO_DEFECTO));
+const cont = document.getElementById("contenedorFormulario");
+
+/* ============ Helpers de UI ============ */
+function campo(label, valor, onCambio, tipo) {
+  const wrap = document.createElement("div");
+  const lab = document.createElement("label");
+  lab.textContent = label;
+  const input = document.createElement(tipo === "textarea" ? "textarea" : "input");
+  if (tipo && tipo !== "textarea") input.type = tipo;
+  input.value = valor ?? "";
+  input.addEventListener("input", () => onCambio(tipo === "number" ? Number(input.value) : input.value));
+  wrap.appendChild(lab); wrap.appendChild(input);
+  return wrap;
+}
+function fila(...celdas) {
+  const f = document.createElement("div");
+  f.className = "fila" + (celdas.length === 1 ? " uno" : "");
+  celdas.forEach((c) => f.appendChild(c));
+  return f;
+}
+function tarjeta(titulo, ayuda) {
+  const t = document.createElement("div");
+  t.className = "tarjeta";
+  const h = document.createElement("h2"); h.textContent = titulo; t.appendChild(h);
+  if (ayuda) { const p = document.createElement("p"); p.className = "ayuda"; p.textContent = ayuda; t.appendChild(p); }
+  cont.appendChild(t);
+  return t;
+}
+function botonAgregar(texto, onClick) {
+  const b = document.createElement("button");
+  b.className = "btn-mini"; b.type = "button";
+  b.innerHTML = `<i class="fa-solid fa-plus"></i> ${texto}`;
+  b.addEventListener("click", onClick);
+  return b;
+}
+function botonQuitar(onClick) {
+  const b = document.createElement("button");
+  b.className = "btn-quitar"; b.type = "button";
+  b.innerHTML = `<i class="fa-solid fa-trash"></i>`;
+  b.addEventListener("click", onClick);
+  return b;
+}
+
+/* Renderiza una lista de objetos editable (agregar / quitar / editar campos) */
+function listaEditable(contenedor, arr, campos, etiqueta, nuevoItem) {
+  const zona = document.createElement("div");
+  contenedor.appendChild(zona);
+  function pintar() {
+    zona.innerHTML = "";
+    arr.forEach((item, idx) => {
+      const box = document.createElement("div");
+      box.className = "item-lista";
+      const enc = document.createElement("div");
+      enc.className = "encabezado-item";
+      enc.innerHTML = `<strong>${etiqueta} ${idx + 1}</strong>`;
+      enc.appendChild(botonQuitar(() => { arr.splice(idx, 1); pintar(); }));
+      box.appendChild(enc);
+      const celdas = campos.map((cfg) => campo(cfg.label, item[cfg.clave], (v) => { item[cfg.clave] = v; }, cfg.tipo));
+      box.appendChild(fila(...celdas));
+      zona.appendChild(box);
+    });
+    const btn = botonAgregar("Agregar " + etiqueta.toLowerCase(), () => { arr.push(nuevoItem()); pintar(); });
+    zona.appendChild(btn);
+  }
+  pintar();
+}
+
+/* ============ Construcción del formulario ============ */
+function construirFormulario() {
+  cont.innerHTML = "";
+
+  // --- Datos del negocio ---
+  let t = tarjeta("Datos del negocio", "Nombre, teléfono, WhatsApp y ubicación que se muestran en toda la web.");
+  t.appendChild(fila(
+    campo("Nombre del negocio", data.negocio.nombre, (v) => data.negocio.nombre = v),
+    campo("Teléfono a mostrar", data.negocio.telefonoMostrar, (v) => data.negocio.telefonoMostrar = v)
+  ));
+  t.appendChild(fila(
+    campo("Teléfono para llamar (con +51)", data.negocio.telefonoLlamada, (v) => data.negocio.telefonoLlamada = v),
+    campo("WhatsApp (con 51, sin +)", data.negocio.whatsapp, (v) => data.negocio.whatsapp = v)
+  ));
+  t.appendChild(fila(
+    campo("Ubicación a mostrar", data.negocio.ubicacion, (v) => data.negocio.ubicacion = v),
+    campo("Texto para buscar en el mapa", data.negocio.mapa, (v) => data.negocio.mapa = v)
+  ));
+  t.appendChild(fila(
+    campo("Mensaje de WhatsApp (botón Cotizar)", data.negocio.mensajeWhatsappCotizar, (v) => data.negocio.mensajeWhatsappCotizar = v, "textarea"),
+    campo("Mensaje de WhatsApp (botón Info)", data.negocio.mensajeWhatsappInfo, (v) => data.negocio.mensajeWhatsappInfo = v, "textarea")
+  ));
+
+  // --- SEO ---
+  t = tarjeta("Título y descripción del navegador", "Lo que aparece en la pestaña del navegador y en Google.");
+  t.appendChild(fila(campo("Título de la pestaña", data.seo.titulo, (v) => data.seo.titulo = v)));
+  t.appendChild(fila(campo("Descripción para buscadores", data.seo.descripcion, (v) => data.seo.descripcion = v, "textarea")));
+
+  // --- Menú ---
+  t = tarjeta("Menú de navegación");
+  listaEditable(t, data.menu, [{ label: "Texto", clave: "texto" }, { label: "Enlace (ej: #servicios)", clave: "enlace" }], "Opción de menú", () => ({ texto: "Nuevo", enlace: "#" }));
+  t.appendChild(fila(campo("Texto del botón del menú", data.menuBoton, (v) => data.menuBoton = v)));
+
+  // --- Hero ---
+  t = tarjeta("Portada (primera sección)");
+  t.appendChild(fila(
+    campo("Insignia pequeña", data.hero.insignia, (v) => data.hero.insignia = v),
+    campo("Imagen de fondo (URL)", data.hero.imagenFondo, (v) => data.hero.imagenFondo = v)
+  ));
+  t.appendChild(fila(
+    campo("Título", data.hero.titulo, (v) => data.hero.titulo = v),
+    campo("Título resaltado", data.hero.tituloResaltado, (v) => data.hero.tituloResaltado = v)
+  ));
+  t.appendChild(fila(campo("Texto debajo del título", data.hero.texto, (v) => data.hero.texto = v, "textarea")));
+  t.appendChild(fila(
+    campo("Botón principal", data.hero.botonPrincipal, (v) => data.hero.botonPrincipal = v),
+    campo("Botón secundario", data.hero.botonSecundario, (v) => data.hero.botonSecundario = v)
+  ));
+
+  // --- Servicios ---
+  t = tarjeta("Sección de servicios");
+  t.appendChild(fila(
+    campo("Mini-título", data.servicios.miniTitulo, (v) => data.servicios.miniTitulo = v),
+    campo("Título", data.servicios.titulo, (v) => data.servicios.titulo = v)
+  ));
+  t.appendChild(fila(
+    campo("Texto", data.servicios.texto, (v) => data.servicios.texto = v),
+    campo('Opción "otro" del formulario', data.servicios.opcionOtro, (v) => data.servicios.opcionOtro = v)
+  ));
+  listaEditable(t, data.servicios.items, [
+    { label: "Ícono (Font Awesome)", clave: "icono" },
+    { label: "Título del servicio", clave: "titulo" },
+    { label: "Texto", clave: "texto" },
+    { label: "Imagen (URL o img/archivo.jpg)", clave: "imagen" },
+    { label: "Texto alternativo de la foto", clave: "alt" }
+  ], "Servicio", () => ({ icono: "fa-solid fa-star", titulo: "Nuevo servicio", texto: "", imagen: "", alt: "" }));
+
+  // --- Sistemas y web ---
+  t = tarjeta("Sección \"Sistemas y páginas web\"");
+  t.appendChild(fila(
+    campo("Mini-título", data.sistemas.miniTitulo, (v) => data.sistemas.miniTitulo = v),
+    campo("Título", data.sistemas.titulo, (v) => data.sistemas.titulo = v)
+  ));
+  t.appendChild(fila(
+    campo("Texto", data.sistemas.texto, (v) => data.sistemas.texto = v),
+    campo("Imagen (URL)", data.sistemas.imagen, (v) => data.sistemas.imagen = v)
+  ));
+  t.appendChild(fila(campo("Texto alternativo de la imagen", data.sistemas.alt, (v) => data.sistemas.alt = v)));
+  listaEditable(t, data.sistemas.items, [{ label: "Ícono", clave: "icono" }, { label: "Texto", clave: "texto" }], "Elemento", () => ({ icono: "fa-solid fa-circle", texto: "Nuevo" }));
+
+  // --- Por qué elegirnos ---
+  t = tarjeta("Sección \"¿Por qué elegirnos?\"");
+  t.appendChild(fila(
+    campo("Mini-título", data.porQue.miniTitulo, (v) => data.porQue.miniTitulo = v),
+    campo("Título", data.porQue.titulo, (v) => data.porQue.titulo = v)
+  ));
+  t.appendChild(fila(campo("Texto", data.porQue.texto, (v) => data.porQue.texto = v)));
+  listaEditable(t, data.porQue.items, [{ label: "Ícono", clave: "icono" }, { label: "Texto", clave: "texto" }], "Razón", () => ({ icono: "fa-solid fa-circle-check", texto: "Nueva razón" }));
+
+  // --- Galería ---
+  t = tarjeta("Galería de trabajos");
+  t.appendChild(fila(
+    campo("Mini-título", data.galeria.miniTitulo, (v) => data.galeria.miniTitulo = v),
+    campo("Título", data.galeria.titulo, (v) => data.galeria.titulo = v)
+  ));
+  t.appendChild(fila(campo("Texto", data.galeria.texto, (v) => data.galeria.texto = v)));
+  listaEditable(t, data.galeria.fotos, [{ label: "Imagen (URL o img/archivo.jpg)", clave: "imagen" }, { label: "Texto alternativo", clave: "alt" }], "Foto", () => ({ imagen: "", alt: "" }));
+
+  // --- Estadísticas ---
+  t = tarjeta("Números / estadísticas");
+  t.appendChild(fila(campo("Imagen de fondo (URL)", data.estadisticas.imagenFondo, (v) => data.estadisticas.imagenFondo = v)));
+  listaEditable(t, data.estadisticas.items, [
+    { label: "Ícono", clave: "icono" }, { label: "Número", clave: "numero", tipo: "number" }, { label: "Texto", clave: "texto" }
+  ], "Estadística", () => ({ icono: "fa-solid fa-chart-simple", numero: 0, texto: "Nuevo dato" }));
+
+  // --- CTA ---
+  t = tarjeta("Llamado a la acción (antes del formulario)");
+  t.appendChild(fila(
+    campo("Título", data.cta.titulo, (v) => data.cta.titulo = v),
+    campo("Texto del botón", data.cta.boton, (v) => data.cta.boton = v)
+  ));
+  t.appendChild(fila(campo("Texto", data.cta.texto, (v) => data.cta.texto = v)));
+
+  // --- Contacto ---
+  t = tarjeta("Sección de contacto");
+  t.appendChild(fila(
+    campo("Mini-título", data.contacto.miniTitulo, (v) => data.contacto.miniTitulo = v),
+    campo("Título", data.contacto.titulo, (v) => data.contacto.titulo = v)
+  ));
+  t.appendChild(fila(campo("Texto", data.contacto.texto, (v) => data.contacto.texto = v)));
+  t.appendChild(fila(
+    campo("Etiqueta \"Teléfono\"", data.contacto.etiquetaTelefono, (v) => data.contacto.etiquetaTelefono = v),
+    campo("Etiqueta \"WhatsApp\"", data.contacto.etiquetaWhatsapp, (v) => data.contacto.etiquetaWhatsapp = v)
+  ));
+  t.appendChild(fila(
+    campo("Etiqueta \"Ubicación\"", data.contacto.etiquetaUbicacion, (v) => data.contacto.etiquetaUbicacion = v),
+    campo("Placeholder del selector de servicio", data.contacto.placeholderServicio, (v) => data.contacto.placeholderServicio = v)
+  ));
+
+  // --- Footer / redes ---
+  t = tarjeta("Pie de página y redes sociales", 'Deja "enlace" vacío para que ese ícono no se muestre. Escribe "whatsapp" para usar tu número.');
+  t.appendChild(fila(campo("Texto del pie de página", data.footer.texto, (v) => data.footer.texto = v)));
+  listaEditable(t, data.footer.redes, [
+    { label: "Ícono", clave: "icono" }, { label: "Nombre", clave: "nombre" }, { label: "Enlace (o \"whatsapp\")", clave: "enlace" }
+  ], "Red social", () => ({ icono: "fa-brands fa-facebook-f", nombre: "Nueva red", enlace: "" }));
+}
+
+construirFormulario();
+
+/* ============ Cargar un contenido.js existente ============ */
+document.getElementById("cargarArchivo").addEventListener("change", (e) => {
+  const archivo = e.target.files[0];
+  if (!archivo) return;
+  const lector = new FileReader();
+  lector.onload = () => {
+    try {
+      const codigo = lector.result;
+      const extraer = new Function(codigo + "\nreturn CONTENIDO;");
+      const cargado = extraer();
+      if (!cargado || !cargado.negocio) throw new Error("El archivo no tiene la estructura esperada.");
+      data = cargado;
+      construirFormulario();
+      const aviso = document.getElementById("estadoGuardado");
+      aviso.style.display = "inline";
+      setTimeout(() => (aviso.style.display = "none"), 3000);
+    } catch (err) {
+      alert("No pude leer ese archivo. Asegúrate de elegir tu js/contenido.js original.\n\n" + err.message);
+    }
+  };
+  lector.readAsText(archivo, "UTF-8");
+});
+
+/* ============ Descargar el nuevo contenido.js ============ */
+document.getElementById("btnDescargar").addEventListener("click", () => {
+  const encabezado = `/* ==========================================================
+   CONTENIDO DE LA PÁGINA — generado con admin.html
+   Reemplaza el archivo js/contenido.js de tu proyecto por este.
+   ========================================================== */
+`;
+  const cuerpo = "const CONTENIDO = " + JSON.stringify(data, null, 2) + ";\n";
+  const blob = new Blob([encabezado + cuerpo], { type: "text/javascript" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "contenido.js";
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>
