@@ -14,6 +14,9 @@
   --borde: #e5eaf1;
   --shadow: 0 15px 45px rgba(11,61,145,.10);
   --shadow2: 0 25px 60px rgba(11,61,145,.18);
+  /* Proporción alto/ancho de tu imagen de portada (1774x887 = 0.5). Solo se usa en tablets y celulares */
+  --hero-prop: 0.5;
+  --alto-menu: 78px;
   /* Imágenes de fondo (js/contenido.js las reemplaza) */
   --hero-img: url("https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=2000&q=85");
   --stats-img: url("https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1800&q=80");
@@ -21,7 +24,7 @@
 
 /* ---------- Base ---------- */
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 85px; }
+html { scroll-behavior: smooth; scroll-padding-top: 85px; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body { font-family: Inter, sans-serif; color: var(--texto); overflow-x: hidden; }
 img { width: 100%; display: block; }
 a { text-decoration: none; color: inherit; }
@@ -42,6 +45,7 @@ header.scrolled { box-shadow: 0 8px 30px rgba(0,0,0,.08); }
 .nav-links a { position: relative; color: #334155; font-size: .9rem; font-weight: 600; }
 .nav-links a:not(.btn)::after { content: ""; position: absolute; bottom: -8px; left: 0; width: 0; height: 2px; background: var(--electrico); transition: .35s; }
 .nav-links a:hover { color: var(--azul); }
+.nav-links a.btn-primary, .nav-links a.btn-primary:hover { color: #fff; }  /* el botón Cotizar del menú se veía con letras grises */
 .nav-links a:hover::after { width: 100%; }
 .menu-toggle { display: none; border: 0; background: none; font-size: 1.5rem; color: var(--azul); cursor: pointer; }
 
@@ -158,30 +162,125 @@ footer { background: #071f49; color: #fff; padding: 45px 0 25px; }
 .reveal { opacity: 0; transform: translateY(35px); transition: .8s ease; }
 .reveal.visible { opacity: 1; transform: translateY(0); }
 
-/* ---------- Responsive ---------- */
-@media (max-width: 950px) {
-  .nav-links { position: absolute; top: 78px; left: 0; width: 100%; padding: 25px; flex-direction: column; align-items: stretch; gap: 18px; background: #fff; box-shadow: 0 20px 30px rgba(0,0,0,.08); opacity: 0; visibility: hidden; transform: translateY(-10px); transition: .35s; }
+/* ==========================================================
+   RESPONSIVE
+   Tres bloques independientes, uno por tipo de pantalla:
+     PC .......... desde 951px
+     TABLETS ..... de 701px a 950px
+     CELULARES ... hasta 700px
+   Cada bloque tiene su propio menú y su propia portada.
+   ========================================================== */
+
+
+/* ==========================================================
+   RESPONSIVE - PC  (951px en adelante)
+   ========================================================== */
+@media (min-width: 951px) {
+  /* Menú completo en una sola línea */
+  .navbar { flex-wrap: nowrap; }
+  .nav-links { flex-wrap: nowrap; }
+  .nav-links a { white-space: nowrap; }
+
+  /* Portada: imagen de fondo cubriendo toda la pantalla */
+  .hero { background-position: center, center; background-size: cover, cover; }
+}
+
+
+/* ==========================================================
+   RESPONSIVE - TABLETS  (701px a 950px)
+   ========================================================== */
+@media (min-width: 701px) and (max-width: 950px) {
+
+  /* --- Menú: botón de 3 rayitas + lista desplegable --- */
+  .navbar { flex-wrap: nowrap; }
+  .logo { min-width: 0; }
+  .logo span:last-child { overflow: hidden; text-overflow: ellipsis; }
+  .nav-links { position: absolute; top: var(--alto-menu); left: 0; width: 100%; max-height: calc(100vh - var(--alto-menu)); overflow-y: auto; padding: 25px; flex-direction: column; align-items: stretch; gap: 18px; background: #fff; box-shadow: 0 20px 30px rgba(0,0,0,.08); opacity: 0; visibility: hidden; transform: translateY(-10px); transition: .35s; }
   .nav-links.active { opacity: 1; visibility: visible; transform: translateY(0); }
   .nav-links a { padding: 7px 0; }
   .nav-links .btn { width: 100%; }
-  .menu-toggle { display: block; }
+  .menu-toggle { display: block; flex-shrink: 0; width: 44px; height: 44px; }
+
+  /* --- Portada: la imagen se ve COMPLETA arriba y el texto va debajo --- */
+  .hero {
+    min-height: auto;
+    align-items: flex-start;
+    padding: calc(var(--alto-menu) + (100vw * var(--hero-prop)) + 28px) 0 70px;
+    background:
+      linear-gradient(180deg,
+        rgba(5,31,77,.08) 0,
+        rgba(5,31,77,.08) calc(var(--alto-menu) + (100vw * var(--hero-prop)) - 30px),
+        #051f4d calc(var(--alto-menu) + (100vw * var(--hero-prop)) + 6px),
+        #051f4d 100%),
+      var(--hero-img) center var(--alto-menu) / 100% auto no-repeat,
+      #051f4d;
+  }
+  .hero-content { padding-top: 0; }
+
+  /* --- Resto de la página (sin cambios) --- */
   .services-grid { grid-template-columns: repeat(2, 1fr); }
   .systems-grid { grid-template-columns: 1fr; gap: 40px; }
   .systems-image { height: 420px; }
   .why-grid { grid-template-columns: repeat(2, 1fr); }
   .contact-grid { grid-template-columns: 1fr; }
 }
+
+/* Tablet o celular girado (horizontal): aquí la imagen sí va de fondo completo */
+@media (min-width: 701px) and (max-width: 950px) and (max-height: 600px) {
+  .hero {
+    min-height: 100vh;
+    align-items: center;
+    padding: 0;
+    background: linear-gradient(90deg, rgba(5,31,77,.94), rgba(11,61,145,.72), rgba(0,163,255,.3)), var(--hero-img) center/cover;
+  }
+  .hero-content { padding-top: 80px; }
+}
+
+
+/* ==========================================================
+   RESPONSIVE - CELULARES  (hasta 700px)
+   ========================================================== */
 @media (max-width: 700px) {
-  .section { padding: 75px 0; }
-  .hero { min-height: 90vh; }
+
+  /* --- Menú: botón de 3 rayitas + lista desplegable --- */
+  .navbar { flex-wrap: nowrap; gap: 12px; }
+  .logo { min-width: 0; }
+  .logo span:last-child { overflow: hidden; text-overflow: ellipsis; }
+  .nav-links { position: absolute; top: var(--alto-menu); left: 0; width: 100%; max-height: calc(100vh - var(--alto-menu)); overflow-y: auto; padding: 25px; flex-direction: column; align-items: stretch; gap: 18px; background: #fff; box-shadow: 0 20px 30px rgba(0,0,0,.08); opacity: 0; visibility: hidden; transform: translateY(-10px); transition: .35s; }
+  .nav-links.active { opacity: 1; visibility: visible; transform: translateY(0); }
+  .nav-links a { padding: 7px 0; }
+  .nav-links .btn { width: 100%; }
+  .menu-toggle { display: block; flex-shrink: 0; width: 44px; height: 44px; }
+
+  /* --- Portada: la imagen se ve COMPLETA arriba y el texto va debajo --- */
+  .hero {
+    min-height: auto;
+    align-items: flex-start;
+    padding: calc(var(--alto-menu) + (100vw * var(--hero-prop)) + 24px) 0 60px;
+    background:
+      linear-gradient(180deg,
+        rgba(5,31,77,.08) 0,
+        rgba(5,31,77,.08) calc(var(--alto-menu) + (100vw * var(--hero-prop)) - 30px),
+        #051f4d calc(var(--alto-menu) + (100vw * var(--hero-prop)) + 6px),
+        #051f4d 100%),
+      var(--hero-img) center var(--alto-menu) / 100% auto no-repeat,
+      #051f4d;
+  }
+  .hero-content { padding-top: 0; }
   .hero h1 { letter-spacing: -1px; }
   .hero-buttons { flex-direction: column; align-items: stretch; }
   .hero-buttons .btn { width: 100%; }
+
+  /* --- Resto de la página (sin cambios) --- */
+  .section { padding: 75px 0; }
   .services-grid { grid-template-columns: 1fr; }
   .service-image { height: 245px; }
+  .systems-grid { grid-template-columns: 1fr; gap: 40px; }
+  .systems-image { height: 420px; }
   .systems-icons { grid-template-columns: 1fr 1fr; }
   .why-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
   .why-card { padding: 25px 12px; }
+  .contact-grid { grid-template-columns: 1fr; }
   .gallery-grid { grid-template-columns: 1fr 1fr; grid-auto-rows: 190px; }
   .gallery-item:nth-child(2) { grid-row: span 1; }
   .gallery-item:nth-child(5) { grid-column: span 1; }
@@ -191,8 +290,11 @@ footer { background: #071f49; color: #fff; padding: 45px 0 25px; }
   .form-group.full { grid-column: auto; }
   .footer-content { flex-direction: column; text-align: center; }
 }
+
+/* Celulares pequeños (hasta 420px) */
 @media (max-width: 420px) {
-  .logo { font-size: .9rem; }
+  .logo { font-size: .9rem; gap: 8px; }
+  .logo-icon { width: 38px; height: 38px; }
   .systems-icons { grid-template-columns: 1fr; }
   .why-grid { grid-template-columns: 1fr; }
   .gallery-grid { grid-template-columns: 1fr; }
